@@ -4,25 +4,25 @@ import { createAdminClient } from '@/lib/supabase/admin'
 const SEED_USERS = [
   {
     email: 'kabondobenjamin1@gmail.com',
-    password: 'Admin@Kabondo123!',
+    password: process.env.SEED_ADMIN_PASSWORD!,
     full_name: 'Benjamin Kabondo',
     role: 'admin',
   },
   {
     email: 'testuser1@proj.com',
-    password: 'TestUser1@123',
+    password: process.env.SEED_TEST_PASSWORD!,
     full_name: 'Alice Johnson',
     role: 'user',
   },
   {
     email: 'testuser2@proj.com',
-    password: 'TestUser2@123',
+    password: process.env.SEED_TEST_PASSWORD!,
     full_name: 'Bob Smith',
     role: 'user',
   },
   {
     email: 'testuser3@proj.com',
-    password: 'TestUser3@123',
+    password: process.env.SEED_TEST_PASSWORD!,
     full_name: 'Carol Davis',
     role: 'user',
   },
