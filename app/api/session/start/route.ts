@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { ensureProfile } from '@/lib/ensure-profile'
+import { humanizeDbError } from '@/lib/db-errors'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -69,6 +71,17 @@ export async function POST(request: Request) {
     // Generate first question
     const firstQuestion = await generateQuestion(job_role, difficulty, 1, [])
 
+    // auth.users is shared across all ten apps in this project, and nothing
+    // created an InterviewForge profile except this app's own signup form, so
+    // an account made elsewhere authenticates fine and then fails here on
+    // interviewforge_sessions.user_id. Provision it on first write.
+    if (!(await ensureProfile(user))) {
+      return NextResponse.json(
+        { error: 'We could not finish setting up your InterviewForge account. Please try again.' },
+        { status: 500 }
+      )
+    }
+
     // Create session
     const { data: session, error: sessionError } = await supabase
       .from('interviewforge_sessions')
@@ -83,8 +96,9 @@ export async function POST(request: Request) {
       .single()
 
     if (sessionError) {
+      console.error('session insert failed:', `${sessionError.code ?? '?'}: ${sessionError.message ?? '?'}`)
       return NextResponse.json(
-        { error: sessionError.message },
+        { error: humanizeDbError(sessionError, 'Could not start your interview. Please try again.') },
         { status: 500 }
       )
     }
